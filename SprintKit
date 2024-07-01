@@ -1,8 +1,6 @@
 --// Inf Stamina \\--
 
 local InfStamina = false
-local OSTM
-local OST
 
 local function INFST()
     local Player = game.Players.LocalPlayer
