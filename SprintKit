@@ -1,0 +1,133 @@
+--// Inf Stamina \\--
+
+local InfStamina = false
+local OSTM
+local OST
+
+local function INFST()
+    local Player = game.Players.LocalPlayer
+    local Character = game.Workspace.Live:FindFirstChild(Player.Name)
+
+    if Character then
+        local Humanoid = Character:FindFirstChild("Humanoid")
+        local StatusF = Character:FindFirstChild("Status")
+        local STValue = StatusF and StatusF:FindFirstChild("Stamina")
+
+        if Humanoid then
+            local STMax = Humanoid:GetAttribute("StaminaMax")
+            if STMax and STMax <= 10000 then
+                OSTM = STMax
+            end
+            Humanoid:SetAttribute("StaminaMax", 9999999)
+        end
+
+        if STValue then
+            local ST = STValue.Value
+            if ST and ST <= 10000 then
+                OST = ST
+            end
+            STValue.Value = 9999999
+        end
+    end
+end
+
+local function RTST()
+    local Player = game.Players.LocalPlayer
+    local Character = game.Workspace.Live:FindFirstChild(Player.Name)
+
+    if Character then
+        local Humanoid = Character:FindFirstChild("Humanoid")
+        local StatusF = Character:FindFirstChild("Status")
+        local STValue = StatusF and StatusF:FindFirstChild("Stamina")
+
+        if Humanoid and OSTM then
+            Humanoid:SetAttribute("StaminaMax", OSTM)
+        end
+
+        if STValue and OST then
+            STValue.Value = OST
+        end
+    end
+end
+
+local function TINFST()
+    if InfStamina then
+        if INFSTConnection then
+            INFSTConnection:Disconnect()
+            INFSTConnection = nil
+        end
+        RTST()
+        InfStamina = false
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Inf Stamina",
+            Text = "DISABLED",
+            Icon = "rbxassetid://13492313545",
+            Duration = 0.1
+        })
+    else
+        INFSTConnection = game:GetService("RunService").RenderStepped:Connect(INFST)
+        InfStamina = true
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Inf Stamina",
+            Text = "ENABLED",
+            Icon = "rbxassetid://14549056586",
+            Duration = 0.1
+        })
+    end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode.Name == InfST then
+        TINFST()
+    end
+end)
+
+--// Auto Sprint \\--
+
+local Player = game.Players.LocalPlayer
+local Sprint = false
+
+local function TR()
+    local Character = game.Workspace.Live:FindFirstChild(Player.Name)
+    if Character then
+        local Status = Character:FindFirstChild("Status")
+        if Status then
+            local Running = Status:FindFirstChild("Running")
+            if Running then
+                Running.Value = Sprint and (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W)
+                or game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A)
+                or game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S)
+                or game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D))
+            end
+        end
+    end
+end
+
+local function TRL()
+    if RunningConnection then
+        RunningConnection:Disconnect()
+        RunningConnection = nil
+        TR()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Always Sprint",
+            Text = "DISABLED",
+            Icon = "rbxassetid://10725295879",
+            Duration = 0.1
+        })
+    else
+        RunningConnection = game:GetService("RunService").RenderStepped:Connect(TR)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Always Sprint",
+            Text = "ENABLED",
+            Icon = "rbxassetid://17744698776",
+            Duration = 0.1
+        })
+    end
+    Sprint = not Sprint
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode.Name == AutoSprint then
+        TRL()
+    end
+end)
