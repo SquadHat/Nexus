@@ -107,7 +107,6 @@ local function TRL()
     if RunningConnection then
         RunningConnection:Disconnect()
         RunningConnection = nil
-        TR()
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Always Sprint",
             Text = "DISABLED",
