@@ -104,16 +104,8 @@ local function TR()
 end
 
 local function TRL()
-    if RunningConnection then
-        RunningConnection:Disconnect()
-        RunningConnection = nil
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Always Sprint",
-            Text = "DISABLED",
-            Icon = "rbxassetid://10725295879",
-            Duration = 0.1
-        })
-    else
+    Sprint = not Sprint
+    if Sprint then
         RunningConnection = game:GetService("RunService").RenderStepped:Connect(TR)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Always Sprint",
@@ -121,8 +113,18 @@ local function TRL()
             Icon = "rbxassetid://17744698776",
             Duration = 0.1
         })
+    else
+        if RunningConnection then
+            RunningConnection:Disconnect()
+            RunningConnection = nil
+        end
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Always Sprint",
+            Text = "DISABLED",
+            Icon = "rbxassetid://10725295879",
+            Duration = 0.1
+        })
     end
-    Sprint = not Sprint
 end
 
 game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
