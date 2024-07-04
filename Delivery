@@ -1,0 +1,92 @@
+--// Box Delivery Farm \\--
+
+local V = 0
+
+for _, model in ipairs(game.workspace.Map.NPCs:GetChildren()) do
+    if model.Name == "BoxDeliveryAccept" then
+        V = V + 1
+        model.Name = "BoxDeliveryAccept" .. V
+    end
+end
+
+local TPT = false
+
+local function TP()
+    local Player = game.Players.LocalPlayer
+    local Character = game.workspace.Live:FindFirstChild(Player.Name)
+
+    if Character then
+        local DeliverTarget = Character:FindFirstChild("DeliverTarget")
+        local function TeleportTo(Target)
+            local THRP = Target:FindFirstChild("HumanoidRootPart")
+            local TRP = Target:FindFirstChild("Left Arm")
+            local PlayerHRP = Character:FindFirstChild("HumanoidRootPart")
+            if THRP and PlayerHRP then
+                local X = (PlayerHRP.Position - THRP.Position).Magnitude
+                if X > 15 then
+                    Character.HumanoidRootPart.CFrame = THRP.CFrame * CFrame.new(0, 0, -6)
+                    game.Workspace.CurrentCamera.CFrame = CFrame.new(Head.Position + Vector3.new(0, 3, -5), Head.Position)
+                end
+                if not OK then
+                    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
+                    OK = true
+                    wait(Delay)
+                    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
+                    OK = false
+                    wait(Delay)
+                end
+            end
+        end
+
+        local function TeleportToBoxDelivery()
+            local BoxDelivery = game.workspace.Map.NPCs:FindFirstChild("BoxDelivery")
+            if BoxDelivery then
+                TeleportTo(BoxDelivery)
+            end
+        end
+
+        local TaskFrame = Player.PlayerGui.RespawnableGui.JobGui.TaskFrame
+        if TaskFrame.Visible then
+            if DeliverTarget and DeliverTarget.Value then
+                local TargetX = game.workspace.Map.NPCs:FindFirstChild(tostring(DeliverTarget.Value))
+                if TargetX then
+                    TeleportTo(TargetX)
+                end
+            else
+                TeleportToBoxDelivery()
+            end
+        else
+            TeleportToBoxDelivery()
+        end
+    end
+end
+
+local function TPK()
+    TPT = not TPT
+    if TPT then
+        DeliveryConnection = game:GetService("RunService").RenderStepped:Connect(TP)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Box Delivery",
+            Text = "ENABLED",
+            Icon = "rbxassetid://14928825735",
+            Duration = 0.2
+        })
+    else
+        if DeliveryConnection then
+            DeliveryConnection:Disconnect()
+            DeliveryConnection = nil
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Box Delivery",
+                Text = "DISABLED",
+                Icon = "rbxassetid://912077237",
+                Duration = 0.2
+            })
+        end
+    end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode.Name == Delivery then
+        TPK()
+    end
+end)
