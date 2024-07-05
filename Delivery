@@ -9,23 +9,64 @@ for _, model in ipairs(game.workspace.Map.NPCs:GetChildren()) do
     end
 end
 
+local VPosition = {}
+local Collider = {}
+local PF = {}
 local TPT = false
+
+local function ColliderS()
+    local Character = game.Players.LocalPlayer.Character
+    if Character then
+        local Z = {"Head", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "Torso", "HumanoidRootPart"}
+        for _, X in ipairs(Z) do
+            local V = Character:FindFirstChild(X)
+            if V and V:IsA("BasePart") and Collider[V] == nil then
+                Collider[V] = V.CanCollide
+            end
+        end
+    end
+end
+
+local function CLCollide()
+    local Character = game.Players.LocalPlayer.Character
+    if Character then
+        local Z = {"Head", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "Torso", "HumanoidRootPart"}
+        for _, X in ipairs(Z) do
+            local V = Character:FindFirstChild(X)
+            if V and V:IsA("BasePart") then
+                V.CanCollide = false
+            end
+        end
+    end
+end
+
+local function RCollide()
+    for V, CLV in pairs(Collider) do
+        if V and V:IsA("BasePart") then
+            V.CanCollide = CLV
+        end
+    end
+    Collider = {}
+end
 
 local function TP()
     local Player = game.Players.LocalPlayer
     local Character = game.workspace.Live:FindFirstChild(Player.Name)
 
+    if Incognito then
+        CLCollide()
+    end
+
     if Character then
         local DeliverTarget = Character:FindFirstChild("DeliverTarget")
         local function TeleportTo(Target)
             local THRP = Target:FindFirstChild("HumanoidRootPart")
-            local TRP = Target:FindFirstChild("Left Arm")
             local PlayerHRP = Character:FindFirstChild("HumanoidRootPart")
             if THRP and PlayerHRP then
                 local X = (PlayerHRP.Position - THRP.Position).Magnitude
                 if X > 15 then
-                    Character.HumanoidRootPart.CFrame = THRP.CFrame * CFrame.new(0, 0, -6)
-                    game.Workspace.CurrentCamera.CFrame = CFrame.new(Head.Position + Vector3.new(0, 3, -5), Head.Position)
+                    Character.HumanoidRootPart.CFrame = THRP.CFrame * CFrame.new(0, 0, -5)
+                    game.Workspace.CurrentCamera.CFrame = CFrame.new(PlayerHRP.Position + Vector3.new(0, 3, 5), Target.Head.Position)
                 end
                 if not OK then
                     game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
@@ -61,10 +102,67 @@ local function TP()
     end
 end
 
+local function From()
+    if Incognito then
+        local NPCNames = {"BoxDelivery", "BoxDeliveryAccept1", "BoxDeliveryAccept2", "BoxDeliveryAccept3"}
+        for _, VNPC in ipairs(NPCNames) do
+            local NPC = game.workspace.Map.NPCs:FindFirstChild(VNPC)
+            if NPC and NPC:FindFirstChild("HumanoidRootPart") then
+                table.insert(VPosition, {VNPC, NPC.HumanoidRootPart.CFrame})
+
+                local PFPart = Instance.new("Part")
+                PFPart.Name = "PF_" .. VNPC
+                PFPart.Size = Vector3.new(20, 1, 20)
+                PFPart.Anchored = true
+                PFPart.Position = NPC.HumanoidRootPart.Position - Vector3.new(0, 11, 0)
+                PFPart.Parent = game.workspace
+                table.insert(PF, PFPart)
+
+                NPC.HumanoidRootPart.CFrame = PFPart.CFrame * CFrame.new(0, 2.5, -4) * CFrame.Angles(0, math.rad(180), 0)
+            end
+        end
+    end
+end
+
+local function RPosition()
+    if Incognito then
+        for _, data in ipairs(VPosition) do
+            local VNPC, PositionV = data[1], data[2]
+            local NPC = game.workspace.Map.NPCs:FindFirstChild(VNPC)
+            if NPC and NPC:FindFirstChild("HumanoidRootPart") then
+                NPC.HumanoidRootPart.CFrame = PositionV
+            end
+        end
+        VPosition = {}
+    end
+end
+
+local function TPrompt(state)
+    local PurchasableFolder = game.Workspace.Map:FindFirstChild("Purchasable")
+    if PurchasableFolder then
+        for _, model in ipairs(PurchasableFolder:GetChildren()) do
+            if model:IsA("Model") and model.Name == "Buzzkill" then
+                local Handle = model:FindFirstChild("Handle")
+                if Handle and Handle:IsA("BasePart") then
+                    local PromptPurchase = Handle:FindFirstChild("PromptPurchase")
+                    if PromptPurchase then
+                        PromptPurchase.Enabled = state
+                    end
+                end
+            end
+        end
+    end
+end
+
 local function TPK()
     TPT = not TPT
+    TPrompt(not TPT)
     if TPT then
-        DeliveryConnection = game:GetService("RunService").RenderStepped:Connect(TP)
+        if Incognito then
+            ColliderS()
+            From()
+        end
+        DeliveryConnection = game:GetService("RunService").Stepped:Connect(TP)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Box Delivery",
             Text = "ENABLED",
@@ -75,13 +173,30 @@ local function TPK()
         if DeliveryConnection then
             DeliveryConnection:Disconnect()
             DeliveryConnection = nil
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Box Delivery",
-                Text = "DISABLED",
-                Icon = "rbxassetid://912077237",
-                Duration = 0.2
-            })
         end
+        if Incognito then
+            RPosition()
+            RCollide()
+        end
+        local Character = game.Players.LocalPlayer.Character
+        if Character and Character:FindFirstChild("HumanoidRootPart") then
+            local BoxDelivery = game.workspace.Map.NPCs:FindFirstChild("BoxDelivery")
+            if BoxDelivery and BoxDelivery:FindFirstChild("HumanoidRootPart") then
+                Character.HumanoidRootPart.CFrame = BoxDelivery.HumanoidRootPart.CFrame * CFrame.new(0, 0, -6)
+            end
+        end
+        for _, PFPart in ipairs(PF) do
+            if PFPart then
+                PFPart:Destroy()
+            end
+        end
+        PF = {}
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Box Delivery",
+            Text = "DISABLED",
+            Icon = "rbxassetid://912077237",
+            Duration = 0.2
+        })
     end
 end
 
