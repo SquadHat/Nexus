@@ -1,0 +1,67 @@
+local ATTV = {}
+local ATTT = false
+
+local function AddATT()
+    local Character = game.Workspace.Live:FindFirstChild(game.Players.LocalPlayer.Name)
+    if Character then
+        local Humanoid = Character:FindFirstChild("Humanoid")
+        if Humanoid then
+            local States = Humanoid:FindFirstChild("States")
+            if States then
+                for ATTL, shouldAdd in pairs(ATT) do
+                    if shouldAdd and not States:GetAttribute(ATTL) then
+                        States:SetAttribute(ATTL, true)
+                        table.insert(ATTV, ATTL)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function RATT()
+    local Character = game.Workspace.Live:FindFirstChild(game.Players.LocalPlayer.Name)
+    if Character then
+        local Humanoid = Character:FindFirstChild("Humanoid")
+        if Humanoid then
+            local States = Humanoid:FindFirstChild("States")
+            if States then
+                for _, ATTT in ipairs(ATTV) do
+                    States:SetAttribute(ATTT, nil)
+                end
+                ATTV = {}
+            end
+        end
+    end
+end
+
+local function TATT()
+    ATTT = not ATTT
+    if ATTT then
+        ATTConnection = game:GetService("RunService").RenderStepped:Connect(AddATT)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Styles",
+            Text = "ENABLED (Add more Styles to your character)",
+            Icon = "rbxassetid://15928997778",
+            Duration = 0.5
+        })
+    else
+        if ATTConnection then
+            ATTConnection:Disconnect()
+            ATTConnection = nil
+        end
+        RATT()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Styles",
+            Text = "DISABLED (This won't disable your current Style)",
+            Icon = "rbxassetid://3638384367",
+            Duration = 0.5
+        })
+    end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode.Name == Style then
+        TATT()
+    end
+end)
