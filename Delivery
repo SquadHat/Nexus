@@ -51,7 +51,7 @@ end
 
 local function TP()
     local Player = game.Players.LocalPlayer
-    local Character = game.workspace.Live:FindFirstChild(Player.Name)
+    local Character = game.Workspace.Live:FindFirstChild(Player.Name)
 
     if Incognito then
         CLCollide()
@@ -80,7 +80,7 @@ local function TP()
         end
 
         local function TeleportToBoxDelivery()
-            local BoxDelivery = game.workspace.Map.NPCs:FindFirstChild("BoxDelivery")
+            local BoxDelivery = game.Workspace.Map.NPCs:FindFirstChild("BoxDelivery")
             if BoxDelivery then
                 TeleportTo(BoxDelivery)
             end
@@ -89,7 +89,7 @@ local function TP()
         local TaskFrame = Player.PlayerGui.RespawnableGui.JobGui.TaskFrame
         if TaskFrame.Visible then
             if DeliverTarget and DeliverTarget.Value then
-                local TargetX = game.workspace.Map.NPCs:FindFirstChild(tostring(DeliverTarget.Value))
+                local TargetX = game.Workspace.Map.NPCs:FindFirstChild(tostring(DeliverTarget.Value))
                 if TargetX then
                     TeleportTo(TargetX)
                 end
@@ -99,6 +99,16 @@ local function TP()
         else
             TeleportToBoxDelivery()
         end
+
+        local BoxDelivery = game.Workspace.Map.NPCs:FindFirstChild("BoxDelivery")
+        if BoxDelivery and BoxDelivery:FindFirstChild("HumanoidRootPart") then
+            local BoxHRP = BoxDelivery.HumanoidRootPart
+            local ProximityPrompt = BoxHRP:FindFirstChild("PromptAttachment") and BoxHRP.PromptAttachment:FindFirstChild("ProximityPrompt")
+            if ProximityPrompt then
+                local Distance = (Character.HumanoidRootPart.Position - BoxHRP.Position).Magnitude
+                ProximityPrompt.Enabled = Distance <= 15
+            end
+        end
     end
 end
 
@@ -106,7 +116,7 @@ local function From()
     if Incognito then
         local NPCNames = {"BoxDelivery", "BoxDeliveryAccept1", "BoxDeliveryAccept2", "BoxDeliveryAccept3"}
         for _, VNPC in ipairs(NPCNames) do
-            local NPC = game.workspace.Map.NPCs:FindFirstChild(VNPC)
+            local NPC = game.Workspace.Map.NPCs:FindFirstChild(VNPC)
             if NPC and NPC:FindFirstChild("HumanoidRootPart") then
                 table.insert(VPosition, {VNPC, NPC.HumanoidRootPart.CFrame})
 
@@ -115,7 +125,7 @@ local function From()
                 PFPart.Size = Vector3.new(20, 1, 20)
                 PFPart.Anchored = true
                 PFPart.Position = NPC.HumanoidRootPart.Position - Vector3.new(0, 11, 0)
-                PFPart.Parent = game.workspace
+                PFPart.Parent = game.Workspace
                 table.insert(PF, PFPart)
 
                 NPC.HumanoidRootPart.CFrame = PFPart.CFrame * CFrame.new(0, 2.5, -4) * CFrame.Angles(0, math.rad(180), 0)
@@ -128,7 +138,7 @@ local function RPosition()
     if Incognito then
         for _, data in ipairs(VPosition) do
             local VNPC, PositionV = data[1], data[2]
-            local NPC = game.workspace.Map.NPCs:FindFirstChild(VNPC)
+            local NPC = game.Workspace.Map.NPCs:FindFirstChild(VNPC)
             if NPC and NPC:FindFirstChild("HumanoidRootPart") then
                 NPC.HumanoidRootPart.CFrame = PositionV
             end
@@ -137,7 +147,7 @@ local function RPosition()
     end
 end
 
-local function TPrompt(state)
+local function TPrompt()
     local PurchasableFolder = game.Workspace.Map:FindFirstChild("Purchasable")
     if PurchasableFolder then
         for _, model in ipairs(PurchasableFolder:GetChildren()) do
@@ -146,7 +156,7 @@ local function TPrompt(state)
                 if Handle and Handle:IsA("BasePart") then
                     local PromptPurchase = Handle:FindFirstChild("PromptPurchase")
                     if PromptPurchase then
-                        PromptPurchase.Enabled = state
+                        PromptPurchase.Enabled = not TPT
                     end
                 end
             end
@@ -156,7 +166,7 @@ end
 
 local function TPK()
     TPT = not TPT
-    TPrompt(not TPT)
+    TPrompt()
     if TPT then
         if Incognito then
             ColliderS()
@@ -180,7 +190,7 @@ local function TPK()
         end
         local Character = game.Players.LocalPlayer.Character
         if Character and Character:FindFirstChild("HumanoidRootPart") then
-            local BoxDelivery = game.workspace.Map.NPCs:FindFirstChild("BoxDelivery")
+            local BoxDelivery = game.Workspace.Map.NPCs:FindFirstChild("BoxDelivery")
             if BoxDelivery and BoxDelivery:FindFirstChild("HumanoidRootPart") then
                 Character.HumanoidRootPart.CFrame = BoxDelivery.HumanoidRootPart.CFrame * CFrame.new(0, 0, -6)
             end
