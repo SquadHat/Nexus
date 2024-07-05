@@ -49,6 +49,19 @@ local function RCollide()
     Collider = {}
 end
 
+local function Message()
+    local Player = game.Players.LocalPlayer
+    local MessagesFrame = Player.PlayerGui:FindFirstChild("RespawnableGui") and Player.PlayerGui.RespawnableGui:FindFirstChild("GameGui") and Player.PlayerGui.RespawnableGui.GameGui:FindFirstChild("MessagesFrame")
+
+    if MessagesFrame then
+        for _, child in ipairs(MessagesFrame:GetChildren()) do
+            if child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
+    end
+end
+
 local function TP()
     local Player = game.Players.LocalPlayer
     local Character = game.Workspace.Live:FindFirstChild(Player.Name)
@@ -66,15 +79,23 @@ local function TP()
                 local X = (PlayerHRP.Position - THRP.Position).Magnitude
                 if X > 15 then
                     Character.HumanoidRootPart.CFrame = THRP.CFrame * CFrame.new(0, 0, -5)
+                end
+                if not Prompt then
                     game.Workspace.CurrentCamera.CFrame = CFrame.new(PlayerHRP.Position + Vector3.new(0, 3, 5), Target.Head.Position)
                 end
-                if not OK then
+                if Prompt and (DeliverTarget and game.Workspace.Map.NPCs:FindFirstChild(tostring(DeliverTarget.Value)) == Target or Target.Name == "BoxDelivery") then
+                    local ProximityPrompt = THRP:FindFirstChild("PromptAttachment") and THRP.PromptAttachment:FindFirstChild("ProximityPrompt")
+                    if ProximityPrompt then
+                        fireproximityprompt(ProximityPrompt)
+                        Message()
+                    end
+                elseif not Prompt and not OK then
                     game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
                     OK = true
-                    wait(Delay)
+                    wait(0.5)
                     game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
                     OK = false
-                    wait(Delay)
+                    wait(0.5)
                 end
             end
         end
@@ -201,6 +222,13 @@ local function TPK()
             end
         end
         PF = {}
+        if Prompt then
+            local Q = tick()
+            while tick() - Q < 0.5 do
+                Message()
+                wait()
+            end
+        end        
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Box Delivery",
             Text = "DISABLED",
